@@ -6,6 +6,7 @@ import {returnOrThrow} from '../utils/api';
 import {SliderBox} from 'react-native-image-slider-box';
 
 import {View, SafeAreaView, ScrollView, StyleSheet, Text} from 'react-native';
+import AppHeader from '../components/AppHeader';
 const ProductDetail = ({navigation, route}) => {
   const productId = route?.params?.id;
   console.log(productId);
@@ -29,10 +30,7 @@ const ProductDetail = ({navigation, route}) => {
           forceInset={commonStyles.forceInset}
           style={commonStyles.safeArea}>
           <ScrollView style={{backgroundColor: 'white', marginVertical: 10}}>
-            <Text
-              style={(commonStyles.text, {textAlign: 'center', fontSize: 18})}>
-              {product.title} Details
-            </Text>
+            <AppHeader navigation={navigation} title={`Product Details`} />
             {product?.title?.length > 0 ? (
               <SliderBox images={product.images} />
             ) : null}

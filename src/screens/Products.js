@@ -3,32 +3,56 @@ import {
   SafeAreaView,
   View,
   Text,
+  Image,
   StyleSheet,
   ScrollView,
   Pressable,
+  TextInput,
 } from 'react-native';
 import {commonStyles} from '../theme/theme';
-import {PRODUCTS, returnOrThrow} from '../utils/api';
+import {ListItem, Input} from 'react-native-elements';
+import {PRODUCTS, PRODUCTS_SEARCH, returnOrThrow} from '../utils/api';
 import {Dropdown} from 'react-native-element-dropdown';
+import AppHeader from '../components/AppHeader';
 
 const Products = ({navigation, route}) => {
   const [products, setProducts] = useState([]);
   const [productsMaster, setProductsMaster] = useState([]);
-  const [brand, setBrand] = useState('');
-  const [sort, setSort] = useState('alphabetically');
+
+  const [search, setSearch] = useState('');
+  const [brands, setBrands] = useState([]);
 
   const getProducts = async () => {
-    const resultJson = await fetch(`${PRODUCTS}`, {
-      method: 'GET',
-    });
+    const resultJson = await fetch(
+      search.length > 0 ? `${PRODUCTS_SEARCH}?q=${search}` : `${PRODUCTS}`,
+      {
+        method: 'GET',
+      },
+    );
     const result = await returnOrThrow(resultJson);
     setProducts(result.products);
     setProductsMaster(result.products);
+
+    setBrands(result.products.map(p => p.brand));
   };
 
+  const filterProducts = () => {
+    if (search.length > 0) {
+      const filteredData = productsMaster.filter(function (item) {
+        const itemData = item.title
+          ? item.title.toUpperCase()
+          : ''.toUpperCase();
+        const textData = search.toUpperCase();
+        return itemData.indexOf(textData) > -1;
+      });
+      return filteredData;
+    } else {
+      return productsMaster;
+    }
+  };
   useEffect(() => {
     getProducts();
-  }, []);
+  });
 
   return (
     <Fragment>
@@ -38,32 +62,30 @@ const Products = ({navigation, route}) => {
           forceInset={commonStyles.forceInset}
           style={commonStyles.safeArea}>
           <ScrollView style={{backgroundColor: 'white', marginVertical: 10}}>
-            <Text
-              style={(commonStyles.text, {textAlign: 'center', fontSize: 18})}>
-              Products
-            </Text>
+            <AppHeader
+              navigation={navigation}
+              disableBack={true}
+              title={'Products'}
+            />
 
-            {products.length > 0 ? (
-              <Dropdown
-                style={[styles.dropdown]}
-                placeholderStyle={styles.placeholderStyle}
-                selectedTextStyle={styles.selectedTextStyle}
-                inputSearchStyle={styles.inputSearchStyle}
-                iconStyle={styles.iconStyle}
-                data={products.map(p => p.brand)}
-                search
-                maxHeight={300}
-                labelField="label"
-                valueField="brand"
-                placeholder={'Select brand'}
-                searchPlaceholder="Search..."
-                value={brand}
-                onChange={item => {
-                  setBrand(item);
-                }}
-              />
-            ) : null}
-
+            <Input
+              inpurtStyle={{
+                fontSize: 12,
+                alignSelf: 'center',
+              }}
+              onEndEditing={() => {
+                setProducts(filterProducts());
+              }}
+              autoCapitalize="none"
+              inputContainerStyle={styles.input}
+              placeholder={'Search products'}
+              labelStyle={{fontSize: 10}}
+              onChangeText={value => {
+                setSearch(value);
+              }}
+              autoCorrect={false}
+              value={search}
+            />
             {products.map(product => {
               return (
                 <Pressable
@@ -74,17 +96,34 @@ const Products = ({navigation, route}) => {
                   }}>
                   <View
                     key={product.id.toString()}
-                    style={[styles.productCard, commonStyles.justifyLeft]}>
-                    <Text style={styles.productTitle}>{product.title}</Text>
-                    <Text style={commonStyles.text}>
-                      Price: ${product.price}
-                    </Text>
-                    <Text style={commonStyles.text}>
-                      Brand: {product.brand}
-                    </Text>
-                    <Text style={commonStyles.text}>
-                      {product.stock > 0 ? 'In Stock' : 'Out of Stock'}
-                    </Text>
+                    style={
+                      (styles.productCard,
+                      {paddingHorizontal: 10, paddingVertical: 10})
+                    }>
+                    <ListItem
+                      containerStyle={{
+                        backgroundColor: 'white',
+                        paddingHorizontal: 0,
+                        paddingVertical: 0,
+                      }}>
+                      <Image
+                        style={{height: 50, width: 50}}
+                        src={product.thumbnail}
+                      />
+                      <ListItem.Content>
+                        <ListItem.Title
+                          numberOfLines={2}
+                          style={styles.productTitle}>
+                          {product.title}
+                        </ListItem.Title>
+                        <ListItem.Subtitle style={styles.productSubTitle}>
+                          Price: ${product.price}
+                        </ListItem.Subtitle>
+                        <ListItem.Subtitle style={styles.productSubTitle}>
+                          Brand: {product.brand}
+                        </ListItem.Subtitle>
+                      </ListItem.Content>
+                    </ListItem>
                   </View>
                 </Pressable>
               );
@@ -104,6 +143,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'black',
     borderBottomWidth: 1,
   },
-  productTitle: {color: 'black', fontSize: 16},
+  productTitle: {color: 'black', fontSize: 18},
+  productSubTitle: {color: 'black', fontSize: 14},
 });
 export default Products;
