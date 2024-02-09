@@ -74,7 +74,7 @@ const Products = ({navigation, route}) => {
                 alignSelf: 'center',
               }}
               onEndEditing={() => {
-                setProducts(filterProducts());
+                return setProducts(filterProducts());
               }}
               autoCapitalize="none"
               inputContainerStyle={styles.input}
