@@ -1,13 +1,15 @@
 import React from 'react';
 
 import MainStack from './src/navigation/MainStack';
-// import ErrorBoundary from './src/screens/ErrorBoundary';
+import ErrorBoundary from './src/screens/ErrorBoundary';
 import {NavigationContainer} from '@react-navigation/native';
 
 function App() {
   return (
     <NavigationContainer>
-      <MainStack />
+      <ErrorBoundary>
+        <MainStack />
+      </ErrorBoundary>
     </NavigationContainer>
   );
 }
